@@ -961,7 +961,7 @@ Try it tomorrow. Your future self will thank you.`,
     setLoading(true);
     hideDemoOutput();
 
-    const HF_API_KEY = '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'; // Replace with your Hugging Face API key
+    const const API_KEY = "YOUR_API_KEY"; // Replace with your Hugging Face API key
 
     try {
       const prompt = `You are a viral short-form content expert.\n\nReturn STRICT JSON format:\n{\n  "hooks": ["", "", ""],\n  "script": "",\n  "caption": ""\n}\n\nTopic: ${topic}\nPlatform: ${platform}\nTone: ${tone}\n\nMake it natural, engaging, and human. Only return the JSON object, nothing else.`;
