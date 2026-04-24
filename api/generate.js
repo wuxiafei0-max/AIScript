@@ -2,7 +2,8 @@ const KIMI_API_URL = 'https://api.moonshot.ai/v1/chat/completions';
 const KIMI_MODEL = 'kimi-k2.6';
 
 function getApiKey() {
-  return process.env.kimi_api_key || process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY;
+  const key = process.env.kimi_api_key || process.env.KIMI_API_KEY || process.env.MOONSHOT_API_KEY || '';
+  return key.trim().replace(/^Bearer\s+/i, '').replace(/^['"]|['"]$/g, '');
 }
 
 function getBody(req) {
