@@ -961,28 +961,22 @@ Try it tomorrow. Your future self will thank you.`,
     setLoading(true);
     hideDemoOutput();
 
-    const HF_API_KEY = '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'; // Replace with your Hugging Face API key
-
     try {
-      const prompt = `You are a viral short-form content expert.\n\nReturn STRICT JSON format:\n{\n  "hooks": ["", "", ""],\n  "script": "",\n  "caption": ""\n}\n\nTopic: ${topic}\nPlatform: ${platform}\nTone: ${tone}\n\nMake it natural, engaging, and human. Only return the JSON object, nothing else.`;
-
-      const res = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2', {
+      const res = await fetch('/api/generate', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${HF_API_KEY}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          inputs: prompt,
-          parameters: { max_new_tokens: 400, temperature: 0.7, return_full_text: false }
+          topic,
+          platform,
+          tone
         })
       });
 
-      if (!res.ok) throw new Error(`HF API error ${res.status}`);
-      const aiData = await res.json();
-      const text = aiData?.[0]?.generated_text || aiData?.generated_text || '';
-      const parsed = parseAIResponse(text) || smartFallback(text) || emptyResult();
-      renderOutput(parsed);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `Generate API error ${res.status}`);
+      renderOutput(data);
     } catch (err) {
       console.warn('[Hookly] AI call failed, using fallback:', err.message);
       const fallback = generateFallback(topic, platform, tone);
@@ -990,54 +984,6 @@ Try it tomorrow. Your future self will thank you.`,
     } finally {
       setLoading(false);
     }
-  }
-
-  function parseAIResponse(text) {
-    try {
-      const match = text.match(/\{[\s\S]*\}/);
-      if (!match) return null;
-      const parsed = JSON.parse(match[0]);
-      if (!Array.isArray(parsed.hooks) || !parsed.script || !parsed.caption) return null;
-      return parsed;
-    } catch {
-      return null;
-    }
-  }
-
-  function emptyResult() {
-    return {
-      hooks: [
-        "This might be the easiest way to go viral...",
-        "Nobody talks about this trick...",
-        "You're doing this wrong..."
-      ],
-      script: "Try again with a clearer topic.",
-      caption: "#content #viral"
-    };
-  }
-
-  function smartFallback(text) {
-    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-    const hooks = [];
-    let script = '';
-    let caption = '';
-
-    for (const line of lines) {
-      if (hooks.length < 3 && (
-        line.toLowerCase().includes('hook') ||
-        line.startsWith('1') ||
-        line.startsWith('-')
-      )) {
-        hooks.push(line.replace(/^[-\d.\s]+/, ''));
-        continue;
-      }
-      if (line.includes('#')) { caption = line; continue; }
-      script += line + ' ';
-    }
-
-    const result = { hooks: hooks.slice(0, 3), script: script.trim(), caption };
-    if (!result.hooks.length || !result.script) return null;
-    return result;
   }
 
   function generateFallback(topic, platform, tone) {
